@@ -1,0 +1,233 @@
+-- FUNCTION: public.findfac(text)
+
+-- DROP FUNCTION public.findfac(text);
+
+CREATE OR REPLACE FUNCTION public.findfac(
+	fac text)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE 
+maxf int;
+BEGIN
+	maxf=(SELECT MAX(sumball_student) FROM student WHERE group_student LIKE fac);
+	RETURN maxf;
+END
+$BODY$;
+
+ALTER FUNCTION public.findfac(text)
+    OWNER TO postgres;
+
+
+
+
+
+
+-- FUNCTION: public.findmax(text)
+
+-- DROP FUNCTION public.findmax(text);
+
+CREATE OR REPLACE FUNCTION public.findmax(
+	fac text)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE 
+maxf int;
+BEGIN
+	maxf=(SELECT MAX(sumball_student) FROM student WHERE group_student LIKE CONCAT (fac,'%'));
+	RETURN maxf;
+END
+$BODY$;
+
+ALTER FUNCTION public.findmax(text)
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- FUNCTION: public.findpoball(integer)
+
+-- DROP FUNCTION public.findpoball(integer);
+
+CREATE OR REPLACE FUNCTION public.findpoball(
+	ball integer)
+    RETURNS TABLE(name_p text, fname_p text, ball_p integer) 
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+    ROWS 1000
+AS $BODY$
+DECLARE 
+_cursor CURSOR FOR SELECT * FROM student;
+namee TEXT;
+fnamee TEXT;
+BEGIN
+	FOR record IN _cursor LOOP
+		IF record.sumball_student=ball THEN
+			namee=record.name_student;
+			fnamee=record.fname_student;
+			RETURN QUERY SELECT namee,fnamee, ball;
+		END IF;
+	END LOOP;
+END
+$BODY$;
+
+ALTER FUNCTION public.findpoball(integer)
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- FUNCTION: public.inf()
+
+-- DROP FUNCTION public.inf();
+
+CREATE OR REPLACE FUNCTION public.inf(
+	)
+    RETURNS TABLE(s integer) 
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+    ROWS 1000
+AS $BODY$
+DECLARE 
+	x1 integer;
+	x2 integer;
+	_cursor CURSOR FOR
+			SELECT x,y 
+			FROM public.numbers ;
+begin
+	FOR record IN _cursor LOOP
+		x1:=(SELECT record.x );
+		x2:=(SELECT record.y);
+		insert into public.numbers(s) values(x1+x2);
+		RETURN QUERY SELECT x1+x2;
+	END LOOP;
+end;
+$BODY$;
+
+ALTER FUNCTION public.inf()
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- FUNCTION: public.summa(integer, integer)
+
+-- DROP FUNCTION public.summa(integer, integer);
+
+CREATE OR REPLACE FUNCTION public.summa(
+	x1 integer,
+	y1 integer)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+	return x1+y1;
+END;
+$BODY$;
+
+ALTER FUNCTION public.summa(integer, integer)
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- FUNCTION: public.dz2()
+
+-- DROP FUNCTION public.dz2();
+
+CREATE OR REPLACE FUNCTION public.dz2(
+	)
+    RETURNS TABLE(fname text, group_ text, baall integer) 
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+    ROWS 1000
+AS $BODY$
+DECLARE 
+_cursor CURSOR FOR SELECT * FROM student;
+__cursor CURSOR FOR SELECT * FROM facultets GROUP BY facultets.id_facultets,facultets.name_facultets, facultets.kolf_facultets  HAVING kolf_facultets>10;
+ball INT;
+group__ text;
+BEGIN
+	FOR record IN _cursor LOOP
+		FOR record2 IN __cursor LOOP
+			IF record.group_student LIKE CONCAT(record2.name_facultets,'%') THEN
+				ball=(SELECT ballstudent.ball_ballstudent FROM ballstudent WHERE ballstudent.reg_ballstudent LIKE record.reg_student);
+				group__=record.group_student;
+				RETURN QUERY SELECT record.name_student, group__, ball;
+			END IF;
+		END LOOP;	 
+	END LOOP;
+END
+$BODY$;
+
+ALTER FUNCTION public.dz2()
+    OWNER TO postgres;
