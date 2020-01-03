@@ -1,0 +1,36 @@
+-- PROCEDURE: public.sum_ma()
+
+-- DROP PROCEDURE public.sum_ma();
+
+CREATE OR REPLACE PROCEDURE public.sum_ma(
+	)
+LANGUAGE 'plpgsql'
+
+AS $BODY$
+DECLARE summ int;
+		i record;
+BEGIN
+	FOR i in SELECT * FROM numbers
+	loop
+		summ=i.n1+i.n2;
+		i.n3=summ;
+	end loop;
+END
+$BODY$;
+
+
+
+
+
+-- PROCEDURE: public.pro1(integer, integer)
+
+-- DROP PROCEDURE public.pro1(integer, integer);
+
+CREATE OR REPLACE PROCEDURE public.pro1(
+	x1 integer,
+	y1 integer)
+LANGUAGE 'sql'
+
+AS $BODY$
+INSERT INTO numbers(x,y) values (x1, y1);
+$BODY$;
