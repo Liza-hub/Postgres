@@ -1,0 +1,55 @@
+-- FUNCTION: public.auto_increment()
+
+-- DROP FUNCTION public.auto_increment();
+
+CREATE FUNCTION public.auto_increment()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE NOT LEAKPROOF
+AS $BODY$
+DECLARE
+BEGIN
+	NEW.id_numbers=nextval('auto');
+	RETURN NEW;
+END; 
+$BODY$;
+
+ALTER FUNCTION public.auto_increment()
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- FUNCTION: public.summa()
+
+-- DROP FUNCTION public.summa();
+
+CREATE FUNCTION public.summa()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE NOT LEAKPROOF
+AS $BODY$
+DECLARE
+a int;
+b int;
+BEGIN
+	a=new.o_numbers;
+	b=new.t_numbers;
+	new.summa = a + b;
+	RETURN NEW;
+END;
+$BODY$;
+
+ALTER FUNCTION public.summa()
+    OWNER TO postgres;
