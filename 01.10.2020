@@ -1,0 +1,25 @@
+INSERT INTO relations VALUES ('a', 'b', 45),
+							 ('g', 'f', 93),
+							 ('f', 'q', 38);
+CREATE OR REPLACE FUNCTION max_price() 
+RETURNS int
+AS $$
+DECLARE 
+		max_pr float;
+		__cursor CURSOR FOR
+			SELECT * FROM public.relations;
+BEGIN 
+	max_pr = 0;
+	FOR i IN __cursor LOOP
+		IF i.price > max_pr THEN
+			max_pr = i.price;
+		END IF;
+	END LOOP;
+	RETURN max_pr;
+END;!
+$$ LANGUAGE plpgsql;
+
+SELECT max_price();
+
+
+//создание функции поиска максимума в столбце
