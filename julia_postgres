@@ -1,0 +1,51 @@
+using HTTP
+using LibPQ
+using JSON
+using Dates
+
+conn  = LibPQ.Connection("dbname=postgres")
+
+query = Dict(
+    "symbol" => "BTCUSDT",
+    "limit"  => 100
+)
+
+while true
+
+    d    = HTTP.get("https://www.binance.com/api/v3/depth", query = query)
+    info = JSON.parse(String(d.body))
+
+
+    UpdateId = info["lastUpdateId"]
+    symbol   = query["symbol"]
+    n        = query["limit"]
+
+
+    for i in 1:n
+        price_asks = info["asks"][i][1]
+        price_bids = info["bids"][i][1]
+        count_asks = info["asks"][i][2]
+        count_bids = info["bids"][i][2]
+    #date = Dates.format(now(), "yyyy-mm-dd HH:MM:SS")
+        result_asks  = execute(conn, "
+        INSERT INTO orderbook
+            VALUES (nextval('order_id'),'$symbol', $UpdateId, $price_asks, $count_asks, 'asks') 
+            ON CONFLICT (update_id)
+            DO UPDATE SET 
+	           symbol = '$symbol', 
+	           lastupdaties = $UpdateId, 
+	           price_ = $price_asks, 
+	           count_ = $count_asks;
+        ")
+        result_bids  = execute(conn, "
+        INSERT INTO orderbook
+            VALUES (nextval('order_id'), '$symbol', $UpdateId, $price_bids, $count_bids, 'bids') 
+            ON CONFLICT (update_id)
+            DO UPDATE SET 
+	           symbol = '$symbol', 
+	           lastupdaties = $UpdateId, 
+	           price_ = $price_asks, 
+	           count_ = $count_asks;
+        ")
+    end
+end
