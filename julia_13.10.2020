@@ -1,0 +1,70 @@
+using HTTP
+using LibPQ
+using JSON
+using Dates
+using Distributed
+
+# 
+# remotecall_fetch(() -> myid(), 3)
+# pmap(i -> println("I'm worker $(myid()), working on i=$i"), 1:10)
+# @sync @distributed for i in 1:10
+#   println("I'm worker $(myid()), working on i=$i")
+# end
+
+ENV["PGPASSWORD"] = "liza"
+ENV["PGPASS"] = "liza"
+
+connection  = LibPQ.Connection("dbname=postgres host=localhost password=liza")
+
+symbols = ["BTCUSDT", "ADAUSDT", "BNBUSDT", "EOSUSDT", "BTCIDRT", "USDTIDRT", "BNBIDRT", "ETHUSDT"]
+
+function InputPostgres(conn, symbols)
+    
+    @sync @async Threads.@threads for symbol in symbols 
+        println("$symbols is on thread #$(Threads.threadid()).")
+        d    = HTTP.get("https://www.binance.com/api/v3/depth", query = Dict(
+                                                                            "symbol" => symbol,
+                                                                            "limit"  => 100
+                                                                            )
+                        )
+
+        info = JSON.parse(String(d.body))
+
+        UpdateId = info["lastUpdateId"]
+
+        for i in 1:100
+            i = 1
+            price_asks = info["asks"][i][1]
+            price_bids = info["bids"][i][1]
+            count_asks = info["asks"][i][2]
+            count_bids = info["bids"][i][2]
+            #date = Dates.format(now(), "yyyy-mm-dd HH:MM:SS")
+            result_asks  = execute(conn, "
+            INSERT INTO orderbook
+                VALUES (nextval('order_id_asks'),'$symbol', $UpdateId, $price_asks, $count_asks, 'asks', now())
+                ON CONFLICT (update_id, symbol, side)
+                DO UPDATE SET
+	               lastupdaties = $UpdateId,
+	               price_       = $price_asks,
+	               count_       = $count_asks,
+                   time_        = now()
+            ")
+            result_bids  = execute(conn, "
+            INSERT INTO orderbook
+                VALUES (nextval('order_id_bids'), '$symbol', $UpdateId, $price_bids, $count_bids, 'bids', now())
+                ON CONFLICT (update_id, symbol, side)
+                DO UPDATE SET
+	                lastupdaties = $UpdateId,
+	                price_       = $price_bids,
+	                count_       = $count_bids,
+                    time_        = now()
+                    ")
+        end
+    end
+end
+
+while true
+    InputPostgres(connection, symbols)
+    @info "update" now()
+end
+
