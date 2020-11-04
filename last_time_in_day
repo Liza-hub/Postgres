@@ -12,3 +12,62 @@ WITH data AS (
 	,symbol
 	,LAST_VALUE(time) OVER (PARTITION BY date ORDER BY time DESC)
   FROM data
+
+
+
+
+WITH data AS (
+  SELECT 
+	 time::date AS date 
+	,time::timestamp
+	,exchange
+	,symbol 
+	,base_usdt_rate::float
+  FROM data2
+) SELECT  
+     date
+	,exchange
+	,symbol
+	,base_usdt_rate
+	,first_value(time::time) OVER (PARTITION BY date, exchange, symbol ORDER BY time::time DESC)
+	--,stddev_samp(base_usdt_rate) OVER (PARTITION BY date ORDER BY time DESC)
+  FROM data
+  WHERE date = '2020-10-20' AND symbol = 'AAVEBKRW'
+  
+  
+  
+  
+  
+  
+ 
+ 
+ 
+ WITH data AS (
+  SELECT 
+	 time::date AS date 
+	,time::timestamp
+	,exchange
+	,symbol 
+	,base_usdt_rate::float
+  FROM data2
+), buff_data AS(
+	SELECT  
+     date
+	,exchange
+	,symbol
+	,base_usdt_rate
+	,FIRST_VALUE(time::time) OVER (PARTITION BY date, exchange, symbol ORDER BY time::time DESC) as last_time
+	,LEAD(base_usdt_rate,1) OVER (PARTITION BY date, exchange, symbol ORDER BY time::time DESC) next_rate
+  FROM data
+)
+	SELECT
+	 date
+	,exchange
+	,symbol
+	,base_usdt_rate
+	,last_time
+	,next_rate
+	,(next_rate - base_usdt_rate)
+  FROM buff_data
+
+
