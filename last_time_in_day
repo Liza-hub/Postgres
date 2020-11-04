@@ -1,0 +1,14 @@
+WITH data AS (
+  SELECT 
+	 time::date AS date 
+	,time::time
+	,exchange
+	,symbol 
+	,base_usdt_rate::float
+  FROM data2
+) SELECT  
+     date
+	,exchange
+	,symbol
+	,LAST_VALUE(time) OVER (PARTITION BY date ORDER BY time DESC)
+  FROM data
