@@ -71,3 +71,31 @@ WITH data AS (
   FROM buff_data
 
 
+
+
+WITH data AS (
+  SELECT 
+	 time::date AS date 
+	,time::timestamp
+	,exchange
+	,symbol 
+	,base_usdt_rate::float
+  FROM data2
+), calc as (
+  SELECT  
+     date
+	,exchange
+	,symbol
+	--,base_usdt_rate
+	,first_value(time::time) OVER (PARTITION BY date, exchange, symbol ORDER BY time::time DESC) as time
+	,first_value(base_usdt_rate) over(PARTITION BY date, exchange, symbol ORDER BY time::time DESC) as rate 
+  FROM data
+) select	
+	date
+	,exchange
+	,symbol
+	,avg(rate)
+	,max(time) as last_update
+  from calc
+  group by date, exchange, symbol
+
